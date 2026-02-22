@@ -1,8 +1,4 @@
 # Ignorer les fichiers lourds
 creditcard.csv
-fraud_model.pkl
 __pycache__/
-*.pyccreditcard.csv 
-fraud_model.pkl 
-__pycache__/ 
-*.pyc 
+*.pyc
