@@ -2,4 +2,7 @@
 creditcard.csv
 fraud_model.pkl
 __pycache__/
-*.pyc
+*.pyccreditcard.csv 
+fraud_model.pkl 
+__pycache__/ 
+*.pyc 
