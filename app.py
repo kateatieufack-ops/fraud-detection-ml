@@ -4,6 +4,7 @@ import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, RocCurveDisplay
+from sklearn.model_selection import train_test_split
 
 # -------------------------------
 # Charger le modèle
@@ -53,30 +54,24 @@ elif menu == "🔮 Prédiction":
     st.title("💳 Prédiction sur une Transaction")
     st.write("Entrez les caractéristiques d'une transaction pour obtenir une prédiction :")
 
-    # Paramètres de la transaction
     montant = st.number_input("💰 Montant (€)", value=300.0)
     temps = st.number_input("⏱️ Temps (secondes)", value=10000.0)
 
-    # Variables PCA
     V = {}
     for i in range(1,29):
         V[f"V{i}"] = st.number_input(f"V{i}", value=0.0)
 
     if st.button("🎯 Analyser la prédiction"):
-        # Créer un DataFrame avec toutes les colonnes
         df_input = pd.DataFrame(columns=model_features)
         df_input.loc[0, "Time"] = temps
         df_input.loc[0, "Amount"] = montant
         for i in range(1,29):
             df_input.loc[0, f"V{i}"] = V[f"V{i}"]
-
-        # Remplir les colonnes manquantes avec 0 si nécessaire
         df_input = df_input.fillna(0)
 
         try:
             prediction = model.predict(df_input)[0]
             proba = model.predict_proba(df_input)[0][1]
-
             st.markdown(f"**Résultat :** {'💥 Fraude détectée !' if prediction==1 else '✅ Transaction légitime'}")
             st.markdown(f"**Probabilité de fraude :** {proba*100:.2f}%")
         except Exception as e:
@@ -87,24 +82,20 @@ elif menu == "🔮 Prédiction":
 # -------------------------------
 elif menu == "📊 Analyse des données":
     st.title("📊 Exploration et Visualisation des Données")
-
-    # Charger le CSV original
     df = pd.read_csv("creditcard.csv")
     st.write("Aperçu des données :")
     st.dataframe(df.head())
 
-    # Statistiques rapides
     total_trans = len(df)
     total_fraudes = df["Class"].sum()
     taux_fraude = total_fraudes / total_trans * 100
-    variables = df.shape[1]-1  # exclure Class
+    variables = df.shape[1]-1
 
     st.metric("Total transactions", total_trans)
     st.metric("Fraudes", total_fraudes)
     st.metric("Taux de fraude (%)", f"{taux_fraude:.2f}")
     st.metric("Variables", variables)
 
-    # Graphiques
     st.subheader("Distribution des classes")
     plt.figure(figsize=(6,4))
     sns.countplot(x="Class", data=df)
@@ -125,25 +116,20 @@ elif menu == "📊 Analyse des données":
 # -------------------------------
 elif menu == "📈 Performance du modèle":
     st.title("📈 Performance du Modèle")
-
     df = pd.read_csv("creditcard.csv")
     X = df.drop("Class", axis=1)
     y = df["Class"]
-
-    from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:,1]
 
-    # Confusion matrix
     st.subheader("Matrice de confusion")
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(cm)
     disp.plot()
     st.pyplot(plt)
 
-    # ROC curve
     st.subheader("Courbe ROC")
     RocCurveDisplay.from_predictions(y_test, y_proba)
     st.pyplot(plt)
@@ -166,12 +152,9 @@ elif menu == "📂 Prédiction par fichier":
         st.write("Aperçu du fichier importé :")
         st.dataframe(df_file.head())
 
-        # Ajouter les colonnes manquantes si nécessaire
         for col in model_features:
             if col not in df_file.columns:
                 df_file[col] = 0
-
-        # Réordonner les colonnes
         df_file = df_file[model_features]
 
         predictions = model.predict(df_file)
